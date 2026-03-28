@@ -1,4 +1,4 @@
-# macro-benchmark
+# swift-macro-benchmark
 
 Measures the compilation time overhead of Swift macros compared to hand-written code.
 
@@ -32,6 +32,21 @@ The benchmark compiles six scenarios and compares wall-clock `swiftc` time using
 | Large Macro | 1 file, N macro usages |
 | Multi-file Default | M files, K hand-written functions each |
 | Multi-file Macro | M files, K macro usages each |
+
+## Results
+
+Measured on Apple M1 Pro, Swift 6.2, macOS. Default parameters: 2000 single-file modifiers, 100 files, 20 modifiers per file.
+
+| Scenario | Mean | vs Hand-written |
+|---|---|---|
+| 1 file, 1 function (hand-written) | 181 ms | - |
+| 1 file, 1 macro | 204 ms | +13% |
+| 1 file, 2000 functions (hand-written) | 12.2 s | - |
+| 1 file, 2000 macros | 21.6 s | +76% |
+| 100 files x 20 functions (hand-written) | 9.9 s | - |
+| 100 files x 20 macros | 14.1 s | +43% |
+
+At small scale (single usage), macro overhead is minimal (~23 ms). At large scale, macros add 43-76% compilation time compared to equivalent hand-written code.
 
 ## Requirements
 
