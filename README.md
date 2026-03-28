@@ -35,7 +35,7 @@ The benchmark compiles six scenarios and compares wall-clock `swiftc` time using
 
 ## Results
 
-Measured on Apple M1 Pro, Swift 6.2, macOS. Default parameters: 2000 single-file modifiers, 100 files, 20 modifiers per file.
+Measured on Apple M1 Pro, Swift 6.2.4 (swiftlang-6.2.4.1.4), macOS. Default parameters: 2000 single-file modifiers, 100 files, 20 modifiers per file.
 
 | Scenario | Mean | vs Hand-written |
 |---|---|---|
