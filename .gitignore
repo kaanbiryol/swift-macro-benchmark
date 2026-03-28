@@ -31,6 +31,8 @@ playground.xcworkspace
 # .swiftpm
 
 .build/
+*_test
+results.json
 
 # CocoaPods
 #
