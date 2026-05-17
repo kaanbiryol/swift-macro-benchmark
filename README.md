@@ -1,10 +1,10 @@
 # swift-macro-benchmark
 
-Measures the compilation time overhead of Swift macros compared to hand-written code.
+Measures Swift macro overhead compared to equivalent hand-written code.
 
 ## Motivation
 
-Swift macros expand at compile time. For a single usage the overhead is negligible, but in a large codebase with hundreds or thousands of macro invocations the cumulative cost can matter. This benchmark quantifies that cost across different scales.
+Swift macros expand during compilation. For a single usage the overhead is negligible, but in a large codebase with hundreds or thousands of macro invocations the cumulative cost can matter. This benchmark quantifies that cost across different scales.
 
 ## What It Benchmarks
 
@@ -22,7 +22,7 @@ public func IsOutlined(_ isOutlined: Bool) -> Self {
 }
 ```
 
-The benchmark compiles six scenarios and compares wall-clock `swiftc` time using [hyperfine](https://github.com/sharkdp/hyperfine):
+The benchmark runs six scenarios using [hyperfine](https://github.com/sharkdp/hyperfine):
 
 | Scenario | Description |
 |---|---|
@@ -33,9 +33,18 @@ The benchmark compiles six scenarios and compares wall-clock `swiftc` time using
 | Multi-file Default | M files, K hand-written functions each |
 | Multi-file Macro | M files, K macro usages each |
 
+Each scenario can be measured in two ways:
+
+| Suite | Command shape | What it measures |
+|---|---|---|
+| Typecheck | `swiftc -typecheck -num-threads ...` | Expansion-focused frontend overhead without optimization, codegen, or linking |
+| Compile | `swiftc -O ... -o` | Full optimized compile impact |
+
+The typecheck suite is the default because it is the cleaner proxy for macro expansion overhead. The compile suite is useful secondary context when you want to know how much the macro changes full optimized build time.
+
 ## Results
 
-Measured on Apple M1 Pro, Swift 6.2.4 (swiftlang-6.2.4.1.4), macOS. Default parameters: 2000 single-file modifiers, 100 files, 20 modifiers per file.
+These historical results are from the full optimized compile suite. They were measured on Apple M1 Pro, Swift 6.2.4 (swiftlang-6.2.4.1.4), macOS. Default parameters: 2000 single-file modifiers, 100 files, 20 modifiers per file.
 
 | Scenario | Mean | vs Hand-written |
 |---|---|---|
@@ -46,7 +55,9 @@ Measured on Apple M1 Pro, Swift 6.2.4 (swiftlang-6.2.4.1.4), macOS. Default para
 | 100 files x 20 functions (hand-written) | 9.9 s | - |
 | 100 files x 20 macros | 14.1 s | +43% |
 
-At small scale (single usage), macro overhead is minimal (~23 ms). At large scale, macros add 43-76% compilation time compared to equivalent hand-written code.
+At small scale (single usage), macro overhead is minimal (~23 ms). At large scale, macros add 43-76% full optimized compile time compared to equivalent hand-written code.
+
+Rerun `./benchmark.sh` before quoting current numbers. The script now also exports an expansion-focused typecheck suite and keeps macro plugin flags out of hand-written baseline commands.
 
 ## Requirements
 
@@ -58,18 +69,32 @@ At small scale (single usage), macro overhead is minimal (~23 ms). At large scal
 ## Usage
 
 ```bash
-# Run with defaults (2000 single-file modifiers, 100 files, 20 modifiers per file)
+# Run the default expansion-focused typecheck benchmark
+# Defaults: 2000 single-file modifiers, 100 files, 20 modifiers per file
 ./benchmark.sh
 
-# Customize: ./benchmark.sh [single_file_modifiers] [num_files] [multi_file_modifiers]
+# Customize: ./benchmark.sh [mode] [single_file_modifiers] [num_files] [multi_file_modifiers]
 ./benchmark.sh 1000 50 10
+
+# Run the full optimized compile benchmark
+./benchmark.sh --compile
+
+# Run both suites
+./benchmark.sh --all
+
+# Reduce or increase hyperfine repetitions
+WARMUPS=3 RUNS=10 ./benchmark.sh --all
+
+# Optional: match the compile-suite parallelism to your machine
+CORES=10 ./benchmark.sh
 ```
 
 The script:
 1. Generates Swift source files via `generate_large_files.py`
 2. Builds the macro plugin with `swift build -c release`
-3. Runs `hyperfine` across all six scenarios
-4. Exports results to `results.json`
+3. Runs the selected benchmark suite
+
+The default `--typecheck` mode exports `results-typecheck.json`. The `--compile` mode exports `results-compile.json`. The `--all` mode exports both. For compatibility with earlier versions of this repo, `results.json` is also updated with the last selected suite; in `--all` mode, it mirrors the compile results.
 
 ## Project Structure
 

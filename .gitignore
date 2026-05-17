@@ -33,6 +33,11 @@ playground.xcworkspace
 .build/
 *_test
 results.json
+results-*.json
+benchmark/large_default/
+benchmark/large_macro/
+benchmark/multi_file/
+benchmark/multi_file_macro/
 
 # CocoaPods
 #
