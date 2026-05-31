@@ -44,20 +44,33 @@ The typecheck suite is the default because it is the cleaner proxy for macro exp
 
 ## Results
 
-These historical results are from the full optimized compile suite. They were measured on Apple M1 Pro, Swift 6.2.4 (swiftlang-6.2.4.1.4), macOS. Default parameters: 2000 single-file modifiers, 100 files, 20 modifiers per file.
+These results were measured on May 31, 2026 on MacBookPro18,3 (Apple M1 Pro, 32 GB), Swift 6.3 (swiftlang-6.3.0.123.5), macOS 26.5. Default parameters: 2000 single-file modifiers, 100 files, 20 modifiers per file, 1 warmup, 3 measured runs, 8 Swift compiler threads.
+
+### Typecheck
 
 | Scenario | Mean | vs Hand-written |
-|---|---|---|
-| 1 file, 1 function (hand-written) | 181 ms | - |
-| 1 file, 1 macro | 204 ms | +13% |
-| 1 file, 2000 functions (hand-written) | 12.2 s | - |
-| 1 file, 2000 macros | 21.6 s | +76% |
-| 100 files x 20 functions (hand-written) | 9.9 s | - |
-| 100 files x 20 macros | 14.1 s | +43% |
+|---|---:|---:|
+| 1 file, 1 function (hand-written) | 121 ms | - |
+| 1 file, 1 macro | 154 ms | +28% |
+| 1 file, 2000 functions (hand-written) | 378 ms | - |
+| 1 file, 2000 macros | 9.48 s | +2409% |
+| 100 files x 20 functions (hand-written) | 5.18 s | - |
+| 100 files x 20 macros | 8.32 s | +61% |
 
-At small scale (single usage), macro overhead is minimal (~23 ms). At large scale, macros add 43-76% full optimized compile time compared to equivalent hand-written code.
+### Compile
 
-Rerun `./benchmark.sh` before quoting current numbers. The script now also exports an expansion-focused typecheck suite and keeps macro plugin flags out of hand-written baseline commands.
+| Scenario | Mean | vs Hand-written |
+|---|---:|---:|
+| 1 file, 1 function (hand-written) | 185 ms | - |
+| 1 file, 1 macro | 208 ms | +12% |
+| 1 file, 2000 functions (hand-written) | 7.81 s | - |
+| 1 file, 2000 macros | 16.8 s | +114% |
+| 100 files x 20 functions (hand-written) | 10.2 s | - |
+| 100 files x 20 macros | 13.3 s | +30% |
+
+At small scale (single usage), macro overhead is minimal: about 34 ms for typecheck and 23 ms for optimized compile. At large scale, 2000 single-file macros are much more expensive in the typecheck suite, while the multi-file macro case adds 61% typecheck time and 30% optimized compile time compared to equivalent hand-written code.
+
+Rerun `./benchmark.sh --all` before quoting current numbers. The script exports an expansion-focused typecheck suite and a full optimized compile suite while keeping macro plugin flags out of hand-written baseline commands.
 
 ## Requirements
 
